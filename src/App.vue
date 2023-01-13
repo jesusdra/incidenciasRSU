@@ -4,11 +4,19 @@
     <Accordion :activeIndex="0">
       <AccordionTab header="Filtros">
         <div class="p-fluid grid formgrid">
-          <div class="field col-12 md:col-4">
+          <div class="field col-12 md:col-3 sm:col-12">
+            <label for="basic">POBLACIÓN: </label>
+            <MultiSelect v-model="selectedCities2" :options="cities" optionLabel="name" placeholder="Seleccionar población" display="chip" @change="pintarIncidencias()"/>
+          </div>
+          <div class="field col-12 md:col-3 sm:col-12">
+            <label for="basic">Tipo de Incidencia: </label>
+            <MultiSelect v-model="selectIncidencia" :options="options" optionLabel="nombre" placeholder="Seleccionar incidencia" display="chip" @change="pintarIncidencias()"/>
+          </div>
+          <div class="field col-12 md:col-3 sm:col-12">
             <label for="basic">FECHA CREACIÓN: </label>
             <Calendar v-model="value" selectionMode="range" :showButtonBar="true" @date-select="handleDate" @clear-click="clearDate"/>
           </div>
-          <div class="field col-12 md:col-4">
+          <div class="field col-12 md:col-3 sm:col-12">
             <fieldset class="scheduler-border">
               <legend class="scheduler-border">Contenedores</legend> 
               <input class="form-check-input" type="checkbox" id="checkboxMarron" value="marron" v-model="checkedContenedores"  @change="pintarIncidencias()"/>
@@ -22,10 +30,6 @@
               <input class="form-check-input" type="checkbox" id="checkboxTodo"   value="todo" v-model="checkedContenedores" @change="pintarIncidencias()"/>
               <label class="form-check-label" for="checkboxTodo">Todo</label>
             </fieldset>
-          </div>
-          <div class="field col-12 md:col-4">
-            <label for="basic">POBLACIÓN: </label>
-            <MultiSelect v-model="selectedCities2" :options="cities" optionLabel="name" placeholder="Seleccionar población" display="chip" @change="pintarIncidencias()"/>
           </div>
         </div>
       </AccordionTab>
@@ -83,9 +87,10 @@ export default {
       dateRanger: null,
       markers: [],      
       selectedCities2: [], //campo select del combo ciudades
+      selectIncidencia: [{ id: 120, nombre: 'Otro' }], //campo select de tipo de incidencias
       cities: [],
       incidencias: [],
-      //cambiar el numero despues de incidencias, para cambiar el estado.
+      //FIXME: cambiar el numero despues de incidencias, para cambiar el estado.
       webIncidencia: 'http://appsdes.dip-badajoz.es/app.php/api/v2/incidencias/2/estadoweb?appToken=ASDFFDG-435657-RSUTY-456650&userToken=d24904f4ccc972aa6167c27089d95a3f942b9f514480de6d301f65b55a875ff6&idIncidencia=',
       optionsState: [
         {id: 1, key: 'ENREVISION', nombre: 'En revisión' },
@@ -93,10 +98,13 @@ export default {
         {id: 3, key: 'CANCELADA', nombre: 'Cancelada' }
       ],
       options: [
-          { text: 'Orange', value: 'orange' },
-          { text: 'Apple', value: 'apple' },
-          { text: 'Pineapple', value: 'pineapple' },
-          { text: 'Grape', value: 'grape' }
+          { id: 120, nombre: 'Otro' },
+          { id: 119, nombre: 'Contenedor sucio' },
+          { id: 122, nombre: 'Desaparecido' },
+          { id: 116, nombre: 'Isla' },
+          { id: 117, nombre: 'Contenedor desbordado' },
+          { id: 117, nombre: 'Contenedor roto' },
+          { id: 121, nombre: 'Contenedor sustituido' },
         ]
     }
   },
@@ -160,11 +168,12 @@ export default {
         transparent: true,
       })
       
-      me.map = Leaflet.map('mapContainer',{layers:[Spain_PNOA_Ortoimagen]}).setView([38.549306046136536, -6.240925714373589], 9) //Localiazcion mas zoom
+      me.map = Leaflet.map('mapContainer',{layers:[Spain_PNOA_Ortoimagen2]}).setView([38.549306046136536, -6.240925714373589], 9) //Localiazcion mas zoom
 
       let baseMaps = {
-        "OrtofotoIDEEXBase": Spain_PNOA_Ortoimagen,
-        "OrtofotoIGN": Spain_PNOA_Ortoimagen2
+        "OrtofotoIGN": Spain_PNOA_Ortoimagen2,
+        "OrtofotoIDEEXBase": Spain_PNOA_Ortoimagen
+        
       };
       let overlayMaps = {
         "calles": Stamen_TonerLabels
@@ -212,8 +221,9 @@ export default {
         
         var slideshowContent = '';
 
-        if(me.selectedState === value.estado_incidencia.key && me.selectedCities2.length == 0 || me.selectedCities2.filter(e => e.name === value.poblacion).length > 0){
-          //en el ultimo or comprobamos que el seleccionado o seleccionados sea alguno igual a la poblacion de la incidencia para
+        if(me.selectedState === value.estado_incidencia.key && me.selectedCities2.length == 0 || me.selectedCities2.filter(e => e.name === value.poblacion).length > 0 ){
+          if(me.selectIncidencia.length == 0 || me.selectIncidencia.filter(e => e.id === value.perfil.id).length > 0){
+            //en el ultimo or comprobamos que el seleccionado o seleccionados sea alguno igual a la poblacion de la incidencia
           let dateInc = me.formatDate(new Date(value.fecha_envio));
           var popupContent =  `
           <h4>INCIDENCIA NUM: ${value.id}</h4>
@@ -289,6 +299,8 @@ export default {
            /* let marker = L.marker([value.latitud, value.longitud], { icon: value.estado_incidencia.key == 'APROBADA'? myIconGreen : value.estado_incidencia.key == 'CANCELADA' ? myIconRed :  myIconYellow }).addTo(me.map).bindPopup(popupContent);
             me.markers.push(marker)*/
           }
+          }
+          
           
         }
       

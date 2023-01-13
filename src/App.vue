@@ -200,6 +200,10 @@ export default {
       const myIconBlue = Leaflet.icon({
         iconUrl: '../images/camion_azul.png',iconSize: [38, 38], // size of the icon
       })
+      const contenedores = Leaflet.icon({
+        iconUrl: '../images/contenedores.png',iconSize: [38, 38], // size of the icon
+      })
+      
       const myIconYellow = Leaflet.icon({
         iconUrl: '../images/camion_amarillo.png',iconSize: [38, 38], // size of the icon
         //marker-yellow camion_amarillo
@@ -290,7 +294,7 @@ export default {
                 let marker = Leaflet.marker([value.latitud, value.longitud], { icon: element == 'verde'? myIconGreen : element == 'amarillo' ? myIconYellow :  element == 'azul' ? myIconBlue :  myIconBrown }).addTo(me.map).bindPopup(popupContent);
                 me.markers.push(marker)
               } else if(element==="todo"){
-                let marker = Leaflet.marker([value.latitud, value.longitud], { icon: myIconRed }).addTo(me.map).bindPopup(popupContent);
+                let marker = Leaflet.marker([value.latitud, value.longitud], { icon: contenedores }).addTo(me.map).bindPopup(popupContent);
                 me.markers.push(marker)
                 
               }

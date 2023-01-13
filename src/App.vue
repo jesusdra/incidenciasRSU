@@ -10,27 +10,28 @@
           </div>
           <div class="field col-12 md:col-3 sm:col-12">
             <label for="basic">Tipo de Incidencia: </label>
-            <MultiSelect v-model="selectIncidencia" :options="options" optionLabel="nombre" placeholder="Seleccionar incidencia" display="chip" @change="pintarIncidencias()"/>
+            <MultiSelect v-model="selectIncidencia" :options="options" optionLabel="nombre" placeholder="Seleccionar incidencia" display="chip" @change="changeIncidencias()"/>
           </div>
           <div class="field col-12 md:col-3 sm:col-12">
             <label for="basic">FECHA CREACIÓN: </label>
             <Calendar v-model="value" selectionMode="range" :showButtonBar="true" @date-select="handleDate" @clear-click="clearDate"/>
           </div>
+          <!--
           <div class="field col-12 md:col-3 sm:col-12">
             <fieldset class="scheduler-border">
               <legend class="scheduler-border">Contenedores</legend> 
-              <input class="form-check-input" type="checkbox" id="checkboxMarron" value="marron" v-model="checkedContenedores"  @change="pintarIncidencias()"/>
+              <input class="form-check-input" type="checkbox" :disabled="disableCheck" id="checkboxMarron" value="marron" v-model="checkedContenedores"  @change="pintarIncidencias()"/>
               <label class="form-check-label" for="checkboxMarron">Marron</label>
-              <input class="form-check-input" type="checkbox" id="checkboxAzul"  value="azul" v-model="checkedContenedores" @change="pintarIncidencias()"/>
+              <input class="form-check-input" type="checkbox" :disabled="disableCheck" id="checkboxAzul"  value="azul" v-model="checkedContenedores" @change="pintarIncidencias()"/>
               <label class="form-check-label" for="checkboxAzul">Azul</label>
-              <input class="form-check-input" type="checkbox" id="checkboxAmarillo"  value="amarillo" v-model="checkedContenedores" @change="pintarIncidencias()"/>
+              <input class="form-check-input" type="checkbox" :disabled="disableCheck" id="checkboxAmarillo"  value="amarillo" v-model="checkedContenedores" @change="pintarIncidencias()"/>
               <label class="form-check-label" for="checkboxAmarillo">Amarillo</label>
-              <input class="form-check-input" type="checkbox" id="checkboxVerde"   value="verde" v-model="checkedContenedores" @change="pintarIncidencias()"/>
+              <input class="form-check-input" type="checkbox" :disabled="disableCheck" id="checkboxVerde"   value="verde" v-model="checkedContenedores" @change="pintarIncidencias()"/>
               <label class="form-check-label" for="checkboxVerde">Verde-Gris</label>
-              <input class="form-check-input" type="checkbox" id="checkboxTodo"   value="todo" v-model="checkedContenedores" @change="pintarIncidencias()"/>
+              <input class="form-check-input" type="checkbox" :disabled="disableCheck" id="checkboxTodo"   value="todo" v-model="checkedContenedores" @change="pintarIncidencias()"/>
               <label class="form-check-label" for="checkboxTodo">Todo</label>
             </fieldset>
-          </div>
+          </div>-->
         </div>
       </AccordionTab>
   </Accordion>
@@ -85,6 +86,7 @@ export default {
       value: null,
       checkedContenedores:['verde'],
       dateRanger: null,
+      disableCheck: false,
       markers: [],      
       selectedCities2: [], //campo select del combo ciudades
       selectIncidencia: [{ id: 120, nombre: 'Otro' }], //campo select de tipo de incidencias
@@ -133,6 +135,18 @@ export default {
         this.padTo2Digits(date.getMonth() + 1),
         date.getFullYear(),
       ].join('/');
+    },
+
+    changeIncidencias (){
+      //comprobamos si es esta seleccionado ISLA que es el codigo 116
+      if(this.selectIncidencia.length >0 && this.selectIncidencia.filter(e => e.id === 116).length > 0){
+        this.checkedContenedores = []
+        this.disableCheck = true
+      } else {
+        this.disableCheck = false
+      }
+
+      this.pintarIncidencias()
     },
 
     pintarIncidencias (){
@@ -203,7 +217,9 @@ export default {
       const contenedores = Leaflet.icon({
         iconUrl: '../images/contenedores.png',iconSize: [38, 38], // size of the icon
       })
-      
+      const contenedorGeneral = Leaflet.icon({
+        iconUrl: '../images/contenedor-general.png',iconSize: [38, 38], // size of the icon
+      })
       const myIconYellow = Leaflet.icon({
         iconUrl: '../images/camion_amarillo.png',iconSize: [38, 38], // size of the icon
         //marker-yellow camion_amarillo
@@ -288,18 +304,24 @@ export default {
             </div>`
             }
 
-            me.checkedContenedores.forEach(element => {
-              if(value[element]>0){
-               // console.log("tenemos "+value[element] +"Contenedores "+ element);
-                let marker = Leaflet.marker([value.latitud, value.longitud], { icon: element == 'verde'? myIconGreen : element == 'amarillo' ? myIconYellow :  element == 'azul' ? myIconBlue :  myIconBrown }).addTo(me.map).bindPopup(popupContent);
-                me.markers.push(marker)
-              } else if(element==="todo"){
-                let marker = Leaflet.marker([value.latitud, value.longitud], { icon: contenedores }).addTo(me.map).bindPopup(popupContent);
-                me.markers.push(marker)
-                
-              }
-              
-            });
+            if(!me.selectIncidencia.filter(e => e.id === 116).length ==1){
+              /*me.checkedContenedores.forEach(element => {
+                if(value[element]>0){
+                  let marker = Leaflet.marker([value.latitud, value.longitud], { icon: element == 'verde'? myIconGreen : element == 'amarillo' ? myIconYellow :  element == 'azul' ? myIconBlue :  myIconBrown }).addTo(me.map).bindPopup(popupContent);
+                  me.markers.push(marker)
+                  
+                } else if(element==="todo"){
+                  let marker = Leaflet.marker([value.latitud, value.longitud], { icon: contenedores }).addTo(me.map).bindPopup(popupContent);
+                  me.markers.push(marker)
+                }
+              });*/
+              let marker = Leaflet.marker([value.latitud, value.longitud], { icon: contenedorGeneral }).addTo(me.map).bindPopup(popupContent);
+              me.markers.push(marker)
+            } else {
+              let marker = Leaflet.marker([value.latitud, value.longitud], { icon: value.perfil.id == 116 ?contenedores:contenedorGeneral }).addTo(me.map).bindPopup(popupContent);
+              me.markers.push(marker)
+            }
+            
            /* let marker = L.marker([value.latitud, value.longitud], { icon: value.estado_incidencia.key == 'APROBADA'? myIconGreen : value.estado_incidencia.key == 'CANCELADA' ? myIconRed :  myIconYellow }).addTo(me.map).bindPopup(popupContent);
             me.markers.push(marker)*/
           }
